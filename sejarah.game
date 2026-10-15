@@ -1,0 +1,235 @@
+# -*- coding: utf-8 -*-
+"""
+MOONSTONE ISLAND — Pengembaraan Sejarah Tingkatan 3
+Berdasarkan game HTML yang diberikan pengguna.
+Cara buka: pasang Python 3, kemudian jalankan fail ini. Tkinter biasanya tersedia bersama Python.
+Kawalan: anak panah / WASD untuk bergerak, SPACE untuk berinteraksi.
+"""
+import tkinter as tk
+from tkinter import messagebox
+import random, json, os, html
+
+MISSIONS = [{"place": "Kampung Melayu", "npc": "Pak Mat", "icon": "🏡", "x": 690, "y": 330, "story": "Pak Mat meminta bantuan kamu mengumpulkan 10 helaian hikayat yang bertaburan di kampung. Setiap helaian menyimpan kisah pembentukan NNMB.", "theme": "Asal Usul dan Tujuan"}, {"place": "Lombong Perak", "npc": "Penjaga Lombong", "icon": "⛏️", "x": 200, "y": 140, "story": "Di lombong lama, kamu menemui terowong rahsia. Untuk melepasi setiap pintu, fahami bagaimana ekonomi bijih timah mempengaruhi campur tangan British.", "theme": "Ekonomi dan Bijih Timah"}, {"place": "Istana Selangor", "npc": "Utusan Istana", "icon": "🏯", "x": 720, "y": 135, "story": "Utusan istana membawa kamu ke balai diraja. Baca dokumen dan dengar kisah tentang sultan, Residen serta perubahan kuasa.", "theme": "Sultan dan Sistem Residen"}, {"place": "Jambatan Sungai", "npc": "Nelayan", "icon": "🌉", "x": 450, "y": 390, "story": "Jambatan ajaib terbahagi kepada sepuluh bahagian. Setiap bahagian akan terbina apabila kamu membantu penduduk memahami sebab NNMB diselaraskan.", "theme": "Pentadbiran dan Perhubungan"}, {"place": "Kuala Lumpur", "npc": "Penjaga Bandar", "icon": "🏙️", "x": 170, "y": 340, "story": "Bandar lama menyimpan peta, rekod lombong dan surat pentadbiran. Cari artifak yang menunjukkan perkembangan Kuala Lumpur.", "theme": "Perkembangan Kuala Lumpur"}, {"place": "Pejabat Residen Jeneral", "npc": "Kerani Arkib", "icon": "🏛️", "x": 455, "y": 110, "story": "Arkib kerajaan dikunci oleh sepuluh meterai. Kerani meminta kamu membaca setiap dokumen untuk membuka kabinet sejarah.", "theme": "Residen Jeneral dan Pentadbiran"}, {"place": "Balai Perjanjian", "npc": "Ahli Sejarah", "icon": "📚", "x": 755, "y": 410, "story": "Ahli sejarah mahu kamu menyiasat sumber primer dan memahami perubahan politik tanpa mempercayai khabar angin.", "theme": "Perjanjian dan Sumber Sejarah"}, {"place": "Perkampungan Negeri Sembilan", "npc": "Tok Penghulu", "icon": "🌳", "x": 310, "y": 430, "story": "Tok Penghulu mengajak kamu menyusuri kampung untuk melihat bagaimana pentadbiran baharu mempengaruhi masyarakat dan warisan tempatan.", "theme": "Masyarakat dan Warisan"}, {"place": "Menara Peta", "npc": "Penjaga Peta", "icon": "🗼", "x": 560, "y": 275, "story": "Sepuluh kepingan peta tersembunyi di menara. Padankan fakta tentang negeri anggota, tarikh dan struktur pentadbiran untuk memulihkannya.", "theme": "Empat Negeri Anggota"}, {"place": "Gerbang Istana Rahsia", "npc": "Penjaga Bulan", "icon": "🏰", "x": 450, "y": 245, "story": "Gerbang terakhir hanya terbuka apabila kamu menyatukan semua kisah tentang pembentukan NNMB dan kesannya.", "theme": "Kesan dan Rumusan"}]
+QA = [[["Mengapakah British mahu menyelaraskan pentadbiran negeri-negeri Melayu?", "Untuk memudahkan pentadbiran dan mengukuhkan kawalan", "Untuk menamatkan semua perdagangan", "Untuk menghapuskan semua institusi tempatan", "Untuk memindahkan ibu kota ke Eropah", "Penyelarasan pentadbiran memudahkan British mengurus kepentingan politik dan ekonomi di negeri-negeri Melayu."], ["Pada tahun berapakah Negeri-Negeri Melayu Bersekutu (NNMB) dibentuk?", "1896", "1895", "1909", "1948", "NNMB dibentuk pada tahun 1896."], ["Negeri manakah yang menjadi anggota NNMB?", "Perak, Selangor, Negeri Sembilan dan Pahang", "Perak, Johor, Kedah dan Perlis", "Selangor, Kelantan, Terengganu dan Johor", "Pahang, Sabah, Sarawak dan Melaka", "Empat anggota NNMB ialah Perak, Selangor, Negeri Sembilan dan Pahang."], ["Apakah maksud perkataan 'bersekutu' dalam nama NNMB?", "Bekerjasama dalam satu susunan pentadbiran", "Semua negeri kehilangan nama", "Semua negeri menjadi sebuah bandar", "Negeri-negeri tidak berhubung langsung", "Negeri-negeri anggota disatukan dalam satu struktur pentadbiran yang diselaraskan."], ["Apakah antara tujuan utama pembentukan NNMB?", "Menyelaraskan pentadbiran dan mengurus kepentingan ekonomi", "Menubuhkan negara merdeka pada 1896", "Menghapuskan kegiatan perlombongan", "Menggantikan semua penduduk tempatan", "Penyelarasan membantu pengurusan pentadbiran serta hasil ekonomi."], ["Siapakah kuasa kolonial yang membentuk NNMB?", "British", "Belanda", "Sepanyol", "Jepun", "NNMB dibentuk di bawah pentadbiran British."], ["Apakah kepentingan tahun 1896 dalam sejarah pentadbiran Tanah Melayu?", "Tahun pembentukan NNMB", "Tahun kemerdekaan Persekutuan Tanah Melayu", "Tahun pembukaan Melaka", "Tahun pembentukan Malaysia", "Tahun 1896 menandakan pembentukan NNMB."], ["Adakah Johor anggota NNMB ketika pembentukannya pada 1896?", "Tidak", "Ya, bersama tiga negeri lain", "Ya, sebagai negeri pertama", "Johor menjadi pusat NNMB", "Johor bukan anggota NNMB ketika ia dibentuk pada 1896."], ["Apakah cara terbaik untuk mengetahui sebab pembentukan NNMB?", "Meneliti dokumen dan konteks sejarah", "Mengagak tanpa bukti", "Menggunakan cerita rekaan sahaja", "Mengabaikan tarikh", "Ahli sejarah menilai dokumen bersama konteks politik dan ekonomi."], ["Apakah yang perlu diingati tentang pembentukan NNMB?", "Empat negeri anggota dan tahun 1896", "Lima negeri anggota dan tahun 1948", "Tiga negeri anggota dan tahun 1957", "Semua negeri Melayu menyertai serentak", "Fakta asas ialah empat negeri anggota dan tahun pembentukan 1896."]], [["Apakah hasil galian yang penting dalam ekonomi Perak dan Selangor pada abad ke-19?", "Bijih timah", "Bauksit sahaja", "Arang batu sahaja", "Uranium", "Bijih timah merupakan sumber ekonomi penting di Perak dan Selangor."], ["Mengapakah kawasan perlombongan menarik perhatian British?", "Nilai ekonomi hasil galian dan perdagangan", "Kawasan itu tidak mempunyai penduduk", "British mahu menghentikan semua perdagangan", "Tiada laluan pengangkutan di situ", "Kekayaan bijih timah meningkatkan minat terhadap kawalan ekonomi dan politik."], ["Apakah kesan perkembangan perlombongan terhadap sesetengah pekan?", "Pekan dan kegiatan perdagangan berkembang", "Semua pekan ditinggalkan", "Perdagangan berhenti sepenuhnya", "Tiada perubahan penduduk", "Perlombongan merangsang pertumbuhan pekan, perniagaan dan pengangkutan."], ["Mengapa kestabilan politik penting kepada kegiatan lombong?", "Kegiatan ekonomi dan perdagangan lebih mudah dijalankan", "Supaya lombong tidak perlu pekerja", "Untuk menghapuskan jalan raya", "Supaya hasil galian tidak boleh dijual", "British mengaitkan kestabilan pentadbiran dengan kelancaran kegiatan ekonomi."], ["Apakah yang dimaksudkan dengan hasil eksport?", "Barang yang dijual ke luar kawasan atau negara", "Barang yang dibuang", "Barang yang tidak digunakan", "Barang yang hanya disimpan di rumah", "Hasil eksport ialah barangan yang dijual ke pasaran luar."], ["Bagaimanakah pengangkutan membantu industri bijih timah?", "Memudahkan hasil dibawa ke pusat perdagangan dan pelabuhan", "Menghalang hasil sampai ke bandar", "Menghapuskan keperluan perdagangan", "Menjadikan perjalanan mustahil", "Jalan raya dan kereta api membantu membawa hasil ekonomi."], ["Apakah hubungan antara ekonomi dengan campur tangan British?", "Kepentingan ekonomi menjadi salah satu faktor campur tangan", "Ekonomi langsung tidak berkaitan", "British hanya berminat pada cuaca", "Perlombongan menyebabkan semua pentadbiran ditutup", "Kepentingan ekonomi merupakan antara faktor campur tangan British."], ["Siapakah yang terlibat dalam kegiatan perlombongan pada abad ke-19?", "Pelbagai kumpulan pekerja dan pemodal", "Hanya pegawai istana wanita", "Tiada pekerja", "Hanya pelancong", "Perlombongan melibatkan pekerja, pemodal dan rangkaian perdagangan."], ["Mengapa sumber sejarah ekonomi perlu dibandingkan?", "Untuk mendapat gambaran yang lebih tepat", "Untuk memilih cerita paling menarik sahaja", "Untuk mengelakkan penggunaan bukti", "Untuk menukar semua tarikh", "Perbandingan sumber membantu menguji ketepatan tafsiran sejarah."], ["Apakah kesimpulan sesuai tentang bijih timah?", "Ia penting kepada ekonomi dan kepentingan British", "Ia tidak bernilai pada abad ke-19", "Ia hanya digunakan sebagai makanan", "Ia tiada kaitan dengan perdagangan", "Bijih timah ialah salah satu faktor ekonomi yang penting dalam sejarah negeri-negeri Melayu."]], [["Siapakah yang terus menjadi pemerintah negeri selepas sistem Residen diperkenalkan?", "Sultan", "Gabenor Australia", "Ketua lombong British", "Pedagang asing", "Sultan kekal sebagai pemerintah negeri, tetapi kuasa pentadbiran berubah."], ["Apakah peranan umum Residen British?", "Memberi nasihat dalam pentadbiran negeri", "Menjadi sultan baharu secara automatik", "Mengurus semua kampung seorang diri", "Menutup semua pejabat kerajaan", "Residen menasihati sultan dalam urusan pentadbiran; pengaruh British semakin besar."], ["Apakah kesan sistem Residen terhadap kuasa sultan?", "Kuasa sultan dalam beberapa urusan pentadbiran menjadi terbatas", "Sultan tidak lagi mempunyai sebarang peranan langsung di semua negeri", "Sultan menguasai seluruh Empayar British", "Tiada perubahan dalam apa-apa urusan", "Walaupun institusi sultan kekal, pengaruh British meningkat dalam pentadbiran."], ["Siapakah Residen Jeneral pertama NNMB?", "Frank Swettenham", "James Brooke", "Francis Light", "Stamford Raffles", "Frank Swettenham ialah Residen Jeneral pertama NNMB."], ["Apakah tugas Residen Jeneral?", "Menyelaraskan pentadbiran negeri-negeri anggota", "Mengurus sebuah lombong sahaja", "Menjadi ketua semua kerajaan dunia", "Menggantikan semua penghulu kampung", "Residen Jeneral menyelaras urusan pentadbiran NNMB."], ["Mengapa sistem Residen memudahkan British mengembangkan pengaruh?", "Nasihat dan pentadbiran memberi ruang kepada pengaruh British", "Sultan menyerahkan semua negeri kepada Siam", "British tidak terlibat dalam urusan negeri", "Sistem itu menghapuskan semua pejabat", "Sistem Residen memperluas pengaruh British dalam pentadbiran negeri."], ["Apakah maksud 'nasihat Residen' dalam konteks sejarah ini?", "Nasihat British yang mempunyai pengaruh besar dalam urusan pentadbiran", "Nasihat daripada pelancong", "Arahan daripada kerajaan moden Malaysia", "Petua pertanian sahaja", "Nasihat Residen bukan sekadar pandangan peribadi; ia mempengaruhi keputusan pentadbiran."], ["Adakah sistem Residen sama dengan pemerintahan sendiri sepenuhnya oleh sultan?", "Tidak", "Ya, tiada pengaruh British langsung", "Ya, kerana Residen hanya pelawat", "Tidak, kerana tiada sultan di negeri Melayu", "Sistem Residen mengehadkan kebebasan sultan dalam beberapa urusan."], ["Mengapa penting memahami perubahan kuasa secara seimbang?", "Supaya kita melihat peranan sultan dan pengaruh British", "Supaya kita mengabaikan sumber sejarah", "Supaya semua peristiwa dianggap sama", "Supaya tarikh tidak perlu diingati", "Sejarah perlu menerangkan kesinambungan institusi tempatan serta perubahan kuasa."], ["Apakah fakta penting tentang pentadbiran Residen?", "Sultan kekal, tetapi pengaruh British bertambah", "Sultan digantikan di semua negeri pada 1896", "Residen hanya mengurus sekolah moden", "Residen tidak terlibat dalam pentadbiran", "Sistem Residen mengubah hubungan kuasa dalam negeri-negeri Melayu."]], [["Apakah sebab pentadbiran diselaraskan melalui NNMB?", "Memudahkan koordinasi antara negeri anggota", "Memutuskan semua hubungan antara negeri", "Menghapuskan perdagangan", "Memindahkan semua penduduk", "Penyelarasan memudahkan koordinasi dan pentadbiran antara empat negeri anggota."], ["Bagaimanakah jalan raya membantu pentadbiran kolonial?", "Memudahkan pergerakan pegawai dan barangan", "Menghalang perjalanan pegawai", "Menghapuskan semua bandar", "Menggantikan semua sungai", "Jalan raya mempercepat pergerakan manusia, maklumat dan barangan."], ["Apakah kepentingan landasan kereta api pada zaman tersebut?", "Menghubungkan kawasan ekonomi dan pusat perdagangan", "Menyebabkan hasil tidak boleh diangkut", "Menghapuskan semua pelabuhan", "Menjadikan setiap perjalanan berjalan kaki", "Kereta api membantu membawa hasil galian dan menghubungkan kawasan penting."], ["Mengapa komunikasi penting untuk pentadbiran?", "Arahan dan maklumat boleh disampaikan dengan lebih cepat", "Supaya dokumen tidak boleh dibaca", "Untuk mengasingkan semua pegawai", "Supaya negeri tidak dapat bekerjasama", "Komunikasi membantu pentadbiran menyampaikan arahan dan maklumat."], ["Apakah perbezaan antara pengangkutan dengan komunikasi?", "Pengangkutan membawa orang/barangan; komunikasi menyampaikan maklumat", "Kedua-duanya bermaksud lombong", "Pengangkutan hanya untuk surat", "Komunikasi hanya untuk membawa bijih", "Kedua-duanya menyokong pentadbiran tetapi mempunyai fungsi berbeza."], ["Apakah kesan pembinaan kemudahan pengangkutan kepada ekonomi?", "Perdagangan dan pengangkutan hasil menjadi lebih mudah", "Semua kegiatan ekonomi terhenti", "Tiada barang dapat bergerak", "Semua lombong ditutup serta-merta", "Kemudahan pengangkutan menyokong perkembangan ekonomi dan perdagangan."], ["Mengapa British berminat membina kemudahan di kawasan kaya sumber?", "Untuk menyokong pengeluaran dan penghantaran hasil", "Untuk menghalang semua eksport", "Untuk menghapuskan bandar", "Untuk memutuskan hubungan dagang", "Infrastruktur sering dibangunkan untuk menyokong kegiatan ekonomi kolonial."], ["Adakah semua penduduk menerima manfaat yang sama daripada perubahan ekonomi?", "Tidak semestinya", "Ya, semua orang menerima faedah sama rata", "Tiada seorang pun terlibat", "Hanya pelancong menerima manfaat", "Kesan perubahan ekonomi boleh berbeza mengikut kumpulan masyarakat."], ["Bagaimanakah jambatan dalam cerita melambangkan sejarah?", "Hubungan antara kawasan dan pentadbiran", "Semua negeri terpisah selama-lamanya", "Penghapusan perdagangan", "Kehidupan tanpa komunikasi", "Jambatan ialah simbol hubungan dan pergerakan antara kawasan."], ["Apakah rumusan tentang pengangkutan dan komunikasi?", "Kedua-duanya membantu penyelarasan dan ekonomi", "Kedua-duanya tiada fungsi", "Kedua-duanya hanya untuk hiburan", "Kedua-duanya menghapuskan pentadbiran", "Pengangkutan dan komunikasi menyokong pentadbiran serta kegiatan ekonomi."]], [["Bandar manakah menjadi pusat pentadbiran NNMB?", "Kuala Lumpur", "Kota Bharu", "Johor Bahru", "Kangar", "Kuala Lumpur berkembang sebagai pusat pentadbiran NNMB."], ["Apakah yang menyumbang kepada pertumbuhan Kuala Lumpur pada abad ke-19?", "Perlombongan bijih timah dan perdagangan", "Perladangan salji", "Industri kapal angkasa", "Perdagangan rempah sahaja sejak zaman Rom", "Kegiatan bijih timah dan perdagangan membantu pertumbuhan Kuala Lumpur."], ["Mengapa bandar berkembang berhampiran kawasan ekonomi?", "Pekerja, perkhidmatan dan perdagangan tertumpu di situ", "Tiada sesiapa mahu tinggal di sana", "Semua jalan ditutup", "Bandar hanya dibina untuk istana rahsia", "Kawasan ekonomi menarik penduduk, perniagaan dan kemudahan."], ["Apakah fungsi pusat pentadbiran?", "Mengurus dan menyelaraskan urusan kerajaan", "Menjadi tempat menyimpan semua makanan sahaja", "Menggantikan semua kampung", "Menghentikan perdagangan", "Pusat pentadbiran mengurus urusan kerajaan dan penyelarasan."], ["Apakah contoh sumber yang boleh membantu mengkaji bandar lama?", "Peta, foto lama dan rekod bertulis", "Cerita tanpa bukti sahaja", "Iklan moden sahaja", "Permainan fiksyen sahaja", "Peta, foto dan rekod bertulis boleh membantu penyelidikan sejarah bandar."], ["Apakah kesan pertumbuhan bandar terhadap masyarakat?", "Peluang kerja dan perubahan kehidupan bandar", "Semua pekerjaan hilang", "Penduduk tidak berpindah langsung", "Tiada pertukaran barangan", "Pertumbuhan bandar membawa peluang serta perubahan sosial dan ekonomi."], ["Mengapa peta lama berguna kepada ahli sejarah?", "Menunjukkan perubahan tempat dan rangkaian perhubungan", "Memberi ramalan masa depan tepat", "Menggantikan semua sumber lain", "Membuktikan semua cerita tanpa semakan", "Peta lama membantu meneliti perubahan ruang dan perhubungan."], ["Apakah yang dimaksudkan dengan urbanisasi?", "Pertumbuhan dan perkembangan kawasan bandar", "Penutupan semua bandar", "Pergerakan hanya di laut", "Penghapusan bangunan", "Urbanisasi ialah proses pertumbuhan atau perkembangan kawasan bandar."], ["Bagaimanakah pentadbiran dan bandar saling berkait?", "Pusat pentadbiran boleh menarik kemudahan dan kegiatan ekonomi", "Bandar tidak memerlukan pentadbiran", "Pentadbiran hanya berlaku di hutan", "Bandar dan pentadbiran tiada hubungan", "Pusat pentadbiran sering menarik kemudahan serta kegiatan ekonomi."], ["Apakah pengajaran daripada sejarah Kuala Lumpur?", "Kegiatan ekonomi dan pentadbiran mempengaruhi perkembangan bandar", "Bandar berkembang tanpa sebarang faktor", "Semua bandar mempunyai sejarah sama", "Peta tidak berguna", "Perkembangan bandar perlu difahami melalui faktor ekonomi, pentadbiran dan masyarakat."]], [["Siapakah Residen Jeneral pertama NNMB?", "Frank Swettenham", "Francis Light", "James Brooke", "Henry Gurney", "Frank Swettenham memegang jawatan Residen Jeneral pertama NNMB."], ["Apakah fungsi Residen Jeneral?", "Menyelaras urusan pentadbiran negeri anggota", "Menjadi ketua kampung bagi semua kampung", "Mengurus kapal dagang sahaja", "Mengetuai kerajaan negeri merdeka", "Jawatan Residen Jeneral membantu penyelarasan pentadbiran NNMB."], ["Apakah tujuan pejabat kerajaan menyimpan rekod?", "Merekod keputusan dan urusan pentadbiran", "Menyembunyikan semua sejarah daripada semua orang", "Menghapuskan bukti", "Menggantikan komunikasi lisan sepenuhnya", "Rekod rasmi membantu pentadbiran dan menjadi sumber kepada ahli sejarah."], ["Apakah risiko apabila kuasa pentadbiran terlalu berpusat?", "Keputusan tempatan mungkin kurang diberi perhatian", "Semua masalah hilang serta-merta", "Tiada arahan dapat dikeluarkan", "Semua penduduk menjadi pegawai", "Pentadbiran berpusat boleh memudahkan koordinasi tetapi juga mengehadkan ruang keputusan tempatan."], ["Mengapa pegawai British menyelaraskan urusan antara negeri?", "Untuk menjadikan pentadbiran lebih teratur mengikut kepentingan mereka", "Untuk menamatkan semua hubungan antara negeri", "Untuk menyerahkan semua lombong kepada penduduk tanpa syarat", "Untuk menghentikan pengumpulan hasil", "Penyelarasan memudahkan British mengurus kepentingan kolonial."], ["Apakah maksud birokrasi?", "Sistem pentadbiran melalui pejabat, jawatan dan prosedur", "Sistem mencari harta karun sahaja", "Perdagangan tanpa rekod", "Sistem memilih ketua secara rawak", "Birokrasi menggunakan pejabat, jawatan dan prosedur rasmi."], ["Mengapa dokumen rasmi penting dalam permainan sejarah ini?", "Ia menjadi bukti untuk memahami pentadbiran", "Ia sentiasa betul tanpa perlu disemak", "Ia tidak pernah mempunyai konteks", "Ia hanya hiasan", "Dokumen rasmi ialah sumber penting tetapi perlu ditafsir mengikut konteks."], ["Apakah hubungan antara Residen Jeneral dengan empat negeri anggota?", "Jawatan itu menyelaras pentadbiran negeri-negeri NNMB", "Jawatan itu hanya mengurus Johor", "Jawatan itu menggantikan semua sultan", "Jawatan itu tidak berkaitan dengan NNMB", "Residen Jeneral menyelaras pentadbiran empat negeri anggota NNMB."], ["Mengapa perubahan pentadbiran perlu dikaji dari pelbagai sudut?", "Untuk memahami kesan terhadap pemerintah, ekonomi dan masyarakat", "Untuk melihat satu pihak sahaja", "Untuk mengelakkan fakta", "Untuk meneka tarikh", "Sejarah pentadbiran melibatkan politik, ekonomi dan kehidupan masyarakat."], ["Apakah rumusan tentang pentadbiran NNMB?", "Pentadbiran diselaraskan di bawah pengaruh British", "NNMB ialah negara merdeka", "Semua negeri tidak mempunyai pentadbiran", "NNMB dibentuk selepas 1957", "NNMB ialah susunan pentadbiran kolonial British yang dibentuk pada 1896."]], [["Apakah contoh sumber primer?", "Surat atau rekod yang dihasilkan pada zaman peristiwa", "Buku fiksyen moden tanpa rujukan", "Cerita rekaan permainan", "Pendapat tanpa bukti", "Sumber primer dihasilkan ketika atau hampir dengan masa yang dikaji."], ["Apakah tujuan membandingkan dua sumber sejarah?", "Menguji persamaan, perbezaan dan kebolehpercayaan", "Memastikan satu sumber dibuang tanpa dibaca", "Mencari jawapan paling mudah sahaja", "Mengelakkan penyelidikan", "Perbandingan membantu menilai bukti dan memahami perbezaan tafsiran."], ["Apakah maksud perjanjian dalam konteks sejarah?", "Persetujuan rasmi antara pihak yang terlibat", "Cerita dongeng semata-mata", "Peta jalan raya", "Senarai barang di pasar", "Perjanjian ialah persetujuan antara pihak; kandungannya perlu diteliti dalam konteks."], ["Mengapa ahli sejarah perlu menyemak tarikh dokumen?", "Untuk meletakkan peristiwa pada urutan masa yang tepat", "Untuk menukar fakta supaya menarik", "Untuk mengabaikan kronologi", "Untuk memastikan semua peristiwa berlaku serentak", "Kronologi membantu memahami urutan dan hubungan peristiwa."], ["Apakah yang dimaksudkan dengan kronologi?", "Susunan peristiwa mengikut masa", "Senarai watak fiksyen", "Peta lokasi sahaja", "Pendapat seseorang", "Kronologi menyusun peristiwa mengikut urutan masa."], ["Apakah sikap terbaik ketika menilai sumber sejarah?", "Kritis dan berdasarkan bukti", "Terus percaya semua dakwaan", "Pilih sumber yang menyokong pendapat sendiri sahaja", "Abaikan konteks", "Penilaian sejarah memerlukan sikap kritis, bukti dan konteks."], ["Adakah satu dokumen sentiasa menceritakan keseluruhan sejarah?", "Tidak, ia mungkin hanya menunjukkan satu sudut", "Ya, satu dokumen menjelaskan semuanya", "Ya, dokumen tidak pernah berat sebelah", "Tidak, semua dokumen palsu", "Setiap sumber mempunyai skop, tujuan dan kemungkinan batasan."], ["Apakah perbezaan fakta dengan tafsiran?", "Fakta boleh disokong bukti; tafsiran menerangkan makna bukti", "Kedua-duanya sentiasa rekaan", "Fakta ialah pendapat tanpa bukti", "Tafsiran tidak memerlukan alasan", "Ahli sejarah menggunakan bukti untuk membina tafsiran yang beralasan."], ["Mengapa surat dan rekod pentadbiran berguna untuk mengkaji NNMB?", "Ia boleh menunjukkan keputusan dan urusan pentadbiran ketika itu", "Ia menceritakan masa depan", "Ia tidak mempunyai tarikh", "Ia menggantikan semua sumber lain", "Rekod pentadbiran boleh memberi maklumat tentang keputusan dan dasar."], ["Apakah kemahiran sejarah yang dilatih melalui misi arkib?", "Menilai bukti dan membuat kesimpulan", "Menghafal tanpa memahami", "Meneka secara rawak", "Mengabaikan tarikh", "Kemahiran sejarah termasuk menilai sumber, kronologi dan membuat kesimpulan."]], [["Selain politik, aspek apakah yang membantu menerangkan kesan NNMB?", "Ekonomi dan masyarakat", "Cuaca di planet lain", "Teknologi masa depan sahaja", "Cerita dongeng sahaja", "Perubahan pentadbiran berkait dengan ekonomi dan kehidupan masyarakat."], ["Mengapa warisan tempatan perlu dipelihara?", "Untuk memahami identiti dan pengalaman masyarakat", "Untuk memadam semua sejarah", "Untuk menggantikan semua dokumen", "Untuk menghalang pembelajaran", "Warisan membantu generasi kemudian memahami pengalaman dan identiti masyarakat."], ["Apakah contoh warisan tidak ketara?", "Adat, bahasa dan cerita lisan", "Bangunan batu sahaja", "Jambatan besi sahaja", "Lombong yang ditutup sahaja", "Warisan tidak ketara termasuk adat, bahasa, amalan dan tradisi lisan."], ["Bagaimanakah perubahan ekonomi boleh mempengaruhi kehidupan penduduk?", "Pekerjaan, migrasi dan pola petempatan boleh berubah", "Tiada sesiapa terkesan", "Semua penduduk menjadi pegawai", "Semua kampung terus hilang", "Perubahan ekonomi boleh mempengaruhi pekerjaan dan pergerakan penduduk."], ["Mengapa cerita lisan perlu dibandingkan dengan bukti lain?", "Ingatan dan penceritaan boleh berubah mengikut masa", "Cerita lisan sentiasa palsu", "Cerita lisan tidak mempunyai nilai", "Supaya semua kisah dibuang", "Cerita lisan bernilai, tetapi perbandingan sumber membantu mengesahkan maklumat."], ["Apakah cara menghormati kepelbagaian masyarakat dalam sejarah?", "Mengkaji pengalaman pelbagai kumpulan secara adil", "Mengabaikan kumpulan tertentu", "Menganggap semua pengalaman serupa", "Mengejek adat tempatan", "Sejarah yang seimbang mengambil kira pengalaman pelbagai kumpulan masyarakat."], ["Apakah kesan kemasukan pekerja ke kawasan ekonomi?", "Kepelbagaian penduduk dan perubahan petempatan", "Semua kegiatan perdagangan berhenti", "Tiada perubahan masyarakat", "Semua bahasa hilang", "Kegiatan ekonomi boleh menarik migrasi dan mengubah komposisi masyarakat."], ["Mengapa penting membezakan fakta sejarah dengan stereotaip?", "Supaya penjelasan tidak menyamaratakan kumpulan masyarakat", "Supaya kita membuat andaian tanpa bukti", "Untuk mengelakkan sumber", "Supaya sejarah menjadi cerita rekaan", "Penjelasan sejarah perlu berasaskan bukti dan tidak menyamaratakan masyarakat."], ["Bagaimanakah murid boleh memelihara sejarah setempat?", "Merekod cerita dengan izin dan menyemak sumber", "Menyebarkan maklumat yang tidak disahkan", "Memusnahkan artifak", "Menukar tarikh pada dokumen", "Sejarah setempat boleh dipelihara melalui dokumentasi yang bertanggungjawab."], ["Apakah pengajaran utama daripada mengkaji masyarakat zaman NNMB?", "Perubahan pentadbiran memberi kesan yang berbeza kepada kehidupan manusia", "Semua orang mengalami kesan sama", "Masyarakat tidak berkait dengan sejarah", "Warisan tidak penting", "Sejarah bukan hanya tentang pemimpin; ia juga tentang pengalaman masyarakat."]], [["Apakah empat negeri anggota NNMB?", "Perak, Selangor, Negeri Sembilan dan Pahang", "Perak, Kedah, Johor dan Kelantan", "Pahang, Terengganu, Perlis dan Johor", "Melaka, Sabah, Sarawak dan Selangor", "Empat negeri anggota ialah Perak, Selangor, Negeri Sembilan dan Pahang."], ["Pada tahun berapakah NNMB dibentuk?", "1896", "1874", "1909", "1957", "NNMB dibentuk pada tahun 1896."], ["Negeri manakah antara anggota NNMB?", "Pahang", "Johor", "Kedah", "Kelantan", "Pahang ialah salah satu daripada empat negeri anggota NNMB."], ["Negeri manakah antara anggota NNMB?", "Negeri Sembilan", "Perlis", "Terengganu", "Johor", "Negeri Sembilan menyertai NNMB bersama Perak, Selangor dan Pahang."], ["Negeri manakah antara anggota NNMB?", "Selangor", "Kedah", "Kelantan", "Johor", "Selangor ialah salah satu negeri anggota NNMB."], ["Negeri manakah antara anggota NNMB?", "Perak", "Johor", "Perlis", "Terengganu", "Perak ialah salah satu negeri anggota NNMB."], ["Yang manakah bukan anggota NNMB pada 1896?", "Johor", "Perak", "Selangor", "Pahang", "Johor bukan anggota NNMB ketika pembentukannya pada 1896."], ["Mengapa peta empat negeri membantu pembelajaran?", "Memudahkan kita mengenal lokasi negeri anggota", "Menunjukkan semua negeri mempunyai sempadan sama", "Menghapuskan keperluan tarikh", "Membuktikan cerita rekaan", "Peta membantu menghubungkan nama negeri dengan lokasi geografi."], ["Apakah yang perlu dilakukan jika dua sumber menyebut fakta berbeza?", "Semak tarikh, asal-usul dan bukti kedua-duanya", "Pilih yang paling pendek", "Abaikan kedua-duanya terus", "Ubah kedua-dua fakta", "Percanggahan sumber perlu disiasat dengan menilai konteks dan bukti."], ["Apakah fakta paling tepat tentang anggota NNMB?", "Empat negeri dan dibentuk pada 1896", "Lima negeri dan dibentuk pada 1909", "Tiga negeri dan dibentuk pada 1948", "Semua negeri Melayu menjadi anggota pada 1896", "NNMB terdiri daripada empat negeri anggota pada tahun 1896."]], [["Apakah salah satu tujuan pembentukan NNMB dari sudut British?", "Menyelaraskan pentadbiran dan menjaga kepentingan ekonomi", "Membebaskan semua negeri daripada pengaruh kolonial", "Menghapuskan perdagangan bijih timah", "Menamatkan semua urusan kerajaan", "Pembentukan NNMB menyokong penyelarasan pentadbiran kolonial."], ["Apakah kesan umum penyelarasan pentadbiran?", "Urusan antara negeri lebih terkoordinasi", "Semua negeri berhenti berhubung", "Tiada pejabat diperlukan", "Semua urusan berpindah ke luar negara", "Penyelarasan memudahkan urusan antara negeri anggota."], ["Apakah fakta yang tepat tentang institusi sultan?", "Institusi sultan kekal tetapi pengaruh British bertambah", "Semua sultan dihapuskan serentak pada 1896", "Sultan memerintah Britain", "Sultan tidak pernah wujud", "Sultan kekal sebagai pemerintah negeri, walaupun kuasa pentadbiran dipengaruhi British."], ["Apakah kesan ekonomi yang berkaitan dengan perlombongan?", "Pertumbuhan bandar dan jaringan pengangkutan", "Penghapusan semua pekerjaan", "Penutupan semua pelabuhan", "Tiada perdagangan langsung", "Perlombongan menyumbang kepada pertumbuhan bandar dan pengangkutan."], ["Mengapa kita perlu belajar sejarah pembentukan NNMB?", "Memahami perubahan pentadbiran, ekonomi dan masyarakat", "Untuk menghafal nama tanpa sebab", "Untuk menganggap semua sumber sama", "Untuk mengabaikan masa lalu", "Kajian NNMB membantu memahami perubahan kuasa dan kesan kolonial."], ["Apakah cara paling baik menerangkan sesuatu peristiwa sejarah?", "Gunakan fakta, kronologi dan bukti yang relevan", "Gunakan khabar angin sahaja", "Cipta tarikh yang lebih menarik", "Abaikan konteks", "Penjelasan sejarah yang baik disokong bukti dan konteks."], ["Apakah maksud kesan jangka panjang?", "Perubahan yang berterusan atau dirasai selepas tempoh peristiwa", "Perubahan yang hanya berlaku seketika", "Perkara yang belum pernah berlaku", "Cerita khayalan", "Kesan jangka panjang ialah perubahan yang berterusan selepas sesuatu peristiwa."], ["Bagaimanakah kita boleh menghubungkan sejarah dengan masa kini?", "Mengkaji bagaimana keputusan lampau mempengaruhi institusi dan tempat", "Menganggap masa lalu tidak relevan", "Mengubah fakta lama", "Mengabaikan semua perubahan", "Sejarah membantu menjelaskan asal-usul sebahagian institusi dan perkembangan semasa."], ["Apakah sikap yang sesuai ketika belajar sejarah penjajahan?", "Menilai bukti dan memahami pelbagai kesan secara kritis", "Menganggap semua tindakan tiada kesan", "Menyebarkan dakwaan tanpa semakan", "Mengabaikan pengalaman penduduk", "Kajian kolonial perlu mengambil kira kuasa, ekonomi dan pengalaman masyarakat."], ["Apakah kunci utama untuk mengingati NNMB?", "1896; Perak, Selangor, Negeri Sembilan dan Pahang", "1909; Johor, Kedah dan Kelantan", "1948; semua negeri Melayu", "1957; Perak dan Melaka sahaja", "Ingat tahun 1896 dan empat negeri anggota NNMB."]]]
+BG = "#101b45"
+CREAM = "#fff2d2"
+PURPLE = "#7651d5"
+GOLD = "#f6cd73"
+MINT = "#b9f1d0"
+RANK_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "moonstone_ranking.json")
+
+class MoonstoneGame:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("MOONSTONE ISLAND — Pengembaraan Sejarah")
+        self.root.geometry("1000x760")
+        self.root.minsize(850, 650)
+        self.root.configure(bg=BG)
+        self.player = ""
+        self.current = 0
+        self.q_index = 0
+        self.score = 0
+        self.keys = 0
+        self.completed = set()
+        self.dialog = None
+        self.x, self.y = 75, 75
+        self.make_intro()
+
+    def clear(self):
+        for w in self.root.winfo_children():
+            w.destroy()
+
+    def make_intro(self):
+        self.clear()
+        panel = tk.Frame(self.root, bg="#d9f5cf", padx=35, pady=28, highlightbackground=GOLD, highlightthickness=5)
+        panel.place(relx=.5, rely=.5, anchor="center", relwidth=.88, relheight=.84)
+        tk.Label(panel, text="🌙 🏝️ 🧙🏻‍♀️", font=("Segoe UI Emoji", 42), bg="#d9f5cf").pack(pady=(12,4))
+        tk.Label(panel, text="MOONSTONE ISLAND", font=("Trebuchet MS", 29, "bold"), fg="#6540b4", bg="#d9f5cf").pack()
+        tk.Label(panel, text="THE LOST LIGHT OF MOONSTONE", font=("Trebuchet MS", 17, "bold"), fg="#30265b", bg="#d9f5cf").pack(pady=5)
+        tk.Label(panel, text="Pengembaraan Sejarah Tingkatan 3\nPembentukan Negeri-Negeri Melayu Bersekutu", font=("Trebuchet MS", 14), bg="#d9f5cf", justify="center").pack(pady=8)
+        tk.Label(panel, text="Bulan ajaib telah memadamkan cahaya sepuluh kawasan. Terokai pulau,\nberbual dengan penduduk, kumpulkan nota sejarah dan cari 10 kunci\nuntuk membuka Istana Rahsia!", font=("Trebuchet MS", 12), bg="#d9f5cf", justify="center").pack(pady=8)
+        tk.Label(panel, text="Nama pengembara:", font=("Trebuchet MS", 12, "bold"), bg="#d9f5cf").pack(pady=(10,2))
+        self.name_entry = tk.Entry(panel, font=("Trebuchet MS", 14), justify="center", width=30)
+        self.name_entry.pack(ipady=7)
+        self.name_entry.bind("<Return>", lambda e: self.start_game())
+        tk.Button(panel, text="MULA PENGEMBARAAN ✨", command=self.start_game, font=("Trebuchet MS", 13, "bold"), bg=PURPLE, fg="white", activebackground="#6541bf", relief="raised", padx=18, pady=9).pack(pady=18)
+        tk.Label(panel, text="Kawalan: anak panah atau WASD untuk bergerak • SPACE untuk berinteraksi", font=("Trebuchet MS", 10), bg="#d9f5cf", fg="#4e4370").pack()
+        self.name_entry.focus_set()
+
+    def start_game(self):
+        name = self.name_entry.get().strip()
+        if not name:
+            messagebox.showwarning("Nama diperlukan", "Masukkan nama pengembara dahulu.")
+            return
+        self.player = name[:30]
+        self.current = 0; self.q_index = 0; self.score = 0; self.keys = 0
+        self.completed = set(); self.x, self.y = 75, 75
+        self.make_game()
+        self.root.bind("<KeyPress>", self.on_key)
+        self.draw_world()
+
+    def make_game(self):
+        self.clear()
+        header = tk.Frame(self.root, bg=CREAM, padx=12, pady=10)
+        header.pack(fill="x")
+        tk.Label(header, text="🌙 MOONSTONE ISLAND", font=("Trebuchet MS", 19, "bold"), fg="#6540b4", bg=CREAM).pack(side="left")
+        self.player_label = tk.Label(header, text=f"🧙 {self.player}", font=("Trebuchet MS", 11, "bold"), bg=CREAM)
+        self.player_label.pack(side="right", padx=8)
+        self.status = tk.Label(self.root, text="", bg="#fff8e8", fg="#30265b", font=("Trebuchet MS", 11, "bold"), pady=8)
+        self.status.pack(fill="x")
+        self.canvas = tk.Canvas(self.root, width=900, height=510, bg="#a8e6c2", highlightthickness=4, highlightbackground=GOLD)
+        self.canvas.pack(padx=12, pady=10, fill="both", expand=True)
+        bottom = tk.Frame(self.root, bg=CREAM, padx=10, pady=10)
+        bottom.pack(fill="x")
+        self.journal = tk.Label(bottom, text="📖 Jurnal: Cari penanda checkpoint pertama.", bg=CREAM, font=("Trebuchet MS", 10), wraplength=550, justify="left")
+        self.journal.pack(side="left", fill="x", expand=True)
+        self.score_label = tk.Label(bottom, text="✨ Markah: 0/100   🗝️ Kunci: 0/10", bg=CREAM, font=("Trebuchet MS", 11, "bold"))
+        self.score_label.pack(side="left", padx=10)
+        tk.Button(bottom, text="🗺️ Peta misi", command=self.show_map, bg=PURPLE, fg="white", font=("Trebuchet MS", 10, "bold")).pack(side="right")
+        tk.Label(self.root, text="Bergerak ke penanda bercahaya dan tekan SPACE untuk berinteraksi.", bg=BG, fg="white", font=("Trebuchet MS", 10)).pack(pady=(0,8))
+
+    def draw_world(self):
+        c = self.canvas
+        c.delete("all")
+        w = max(c.winfo_width(), 900); h = max(c.winfo_height(), 510)
+        c.create_rectangle(0,0,w,h,fill="#a8e6c2",outline="")
+        c.create_rectangle(0,0,w,28,fill="#63c9ec",outline="")
+        c.create_rectangle(0,h-22,w,h,fill="#63c9ec",outline="")
+        # Winding golden path
+        c.create_line(65,90,220,70,210,220,365,215,520,210,330,370,500,410,650,450,650,290,790,320, smooth=True, fill="#d8bd88", width=48)
+        c.create_line(65,90,220,70,210,220,365,215,520,210,330,370,500,410,650,450,650,290,790,320, smooth=True, fill="#f7e3ad", width=34)
+        for i in range(34):
+            tx=(i*97+38)%(w-50)+20; ty=(i*67+45)%(h-60)+35
+            c.create_text(tx,ty,text=["🌼","🌳","🌿","✨"][i%4],font=("Segoe UI Emoji", 17))
+        buildings=[(110,125,"🏡"),(700,75,"🏯"),(110,310,"🏙️"),(390,65,"🏛️"),(680,360,"📚"),(260,390,"🌳")]
+        for bx,by,em in buildings: c.create_text(bx,by,text=em,font=("Segoe UI Emoji",30))
+        for i,m in enumerate(MISSIONS):
+            color="#74e3a1" if i in self.completed else ("#ff9acb" if i==self.current else "#fff0a3")
+            c.create_oval(m["x"]-17,m["y"]-17,m["x"]+17,m["y"]+17,fill=color,outline="#fff7d8",width=4)
+            c.create_text(m["x"],m["y"],text="✓" if i in self.completed else str(i+1),font=("Arial",13,"bold"),fill="#35225f")
+            c.create_text(m["x"],m["y"]-31,text=m["icon"],font=("Segoe UI Emoji",20))
+            c.create_text(m["x"],m["y"]+30,text=m["place"],font=("Trebuchet MS",9,"bold"),fill="#35225f")
+        c.create_text(self.x,self.y,text="🧙🏻‍♀️",font=("Segoe UI Emoji",26))
+        c.create_text(115,35,text="MOONSTONE ISLAND",font=("Trebuchet MS",11,"bold"),fill="#35245e")
+        self.status.config(text=f"📍 {MISSIONS[self.current]['place']}     |     Checkpoint {self.current+1}/10     |     Soalan {self.q_index+1}/1")
+        self.score_label.config(text=f"✨ Markah: {self.score}/100   🗝️ Kunci: {self.keys}/10")
+        self.journal.config(text=f"📖 Jurnal: Dekati {MISSIONS[self.current]['npc']} di {MISSIONS[self.current]['place']}.")
+
+    def on_key(self, event):
+        if self.dialog and self.dialog.winfo_exists(): return
+        k=event.keysym.lower()
+        dx=dy=0
+        if k in ("up","w"): dy=-1
+        elif k in ("down","s"): dy=1
+        elif k in ("left","a"): dx=-1
+        elif k in ("right","d"): dx=1
+        elif k in ("space",): self.interact(); return
+        else: return
+        self.x=max(35,min(860,self.x+dx*24)); self.y=max(45,min(475,self.y+dy*24))
+        self.draw_world()
+
+    def interact(self):
+        m=MISSIONS[self.current]
+        if (self.x-m["x"])**2+(self.y-m["y"])**2 > 115**2:
+            messagebox.showinfo("Teroka pulau", f"Berjalan lebih dekat ke penanda bercahaya di {m['place']} dahulu.")
+            return
+        if self.current in self.completed:
+            if self.current < 9:
+                self.current+=1; self.q_index=0; self.x,self.y=75,75; self.draw_world()
+            else: self.finish()
+            return
+        self.show_story()
+
+    def show_story(self):
+        m=MISSIONS[self.current]; q=QA[self.current][self.q_index]
+        self.popup("📜 "+m["npc"], m["story"] + f"\n\nTEMA: {m['theme']}\n\nNOTA SEJARAH:\n{q[5]}\n\nCABARAN CERITA:\n{q[0]}", [("Cari petunjuk ➜", lambda: self.show_choices(q))])
+
+    def show_choices(self, q):
+        self.close_popup()
+        win=tk.Toplevel(self.root); self.dialog=win
+        win.title("Cabaran cerita Moonstone")
+        win.configure(bg=CREAM); win.transient(self.root); win.grab_set()
+        win.geometry("650x470")
+        tk.Label(win,text="🧭 PILIH PETUNJUK YANG BETUL",font=("Trebuchet MS",16,"bold"),bg=CREAM,fg="#6540b4").pack(pady=14)
+        tk.Label(win,text=q[0],font=("Trebuchet MS",12,"bold"),bg=CREAM,wraplength=590,justify="left").pack(padx=22,pady=8,anchor="w")
+        options=[(q[1],True),(q[2],False),(q[3],False),(q[4],False)]
+        random.shuffle(options)
+        for i,(text,correct) in enumerate(options):
+            tk.Button(win,text=f"{['🌟','🧭','🍃','🔮'][i]}  {text}",command=lambda v=correct:self.answer(v,q),bg="#7651d5",fg="white",activebackground="#6541bf",font=("Trebuchet MS",11,"bold"),wraplength=560,justify="left",anchor="w",padx=12,pady=8).pack(fill="x",padx=20,pady=5)
+        tk.Label(win,text="📖 Nota akan disimpan dalam jurnal selepas cabaran.",bg=CREAM,fg="#51456e",font=("Trebuchet MS",10)).pack(pady=8)
+
+    def answer(self, correct, q):
+        self.close_popup()
+        if correct: self.score+=10
+        text=("Bagus! Kamu berjaya menemui petunjuk." if correct else "Petunjuk ditemui! Teruskan belajar daripada nota ini.")
+        self.popup("✨ Petunjuk sejarah", text+f"\n\nNOTA JURNAL:\n{q[5]}\n\nMarkah semasa: {self.score}/100", [("Teruskan ➜", self.next_question)])
+
+    def next_question(self):
+        self.close_popup()
+        if self.q_index < 0:
+            self.q_index+=1; self.draw_world()
+        else:
+            self.completed.add(self.current); self.keys+=1
+            m=MISSIONS[self.current]
+            self.popup("🗝️ Kunci diperoleh!",f"Kamu telah menyelesaikan satu cabaran sejarah di {m['place']}!\n\nTema: {m['theme']}\nKunci terkumpul: {self.keys}/10",[("Ke checkpoint seterusnya ➜",self.next_checkpoint)])
+
+    def next_checkpoint(self):
+        self.close_popup()
+        if self.current < 9:
+            self.current+=1; self.q_index=0; self.x,self.y=75,75; self.draw_world()
+        else: self.finish()
+
+    def popup(self, title, body, buttons):
+        self.close_popup()
+        win=tk.Toplevel(self.root); self.dialog=win
+        win.title(title); win.configure(bg=CREAM); win.transient(self.root); win.grab_set()
+        win.geometry("680x430")
+        tk.Label(win,text=title,font=("Trebuchet MS",17,"bold"),bg=CREAM,fg="#6540b4").pack(pady=(18,8))
+        box=tk.Frame(win,bg="#fff9d9",padx=16,pady=12); box.pack(fill="both",expand=True,padx=18,pady=5)
+        tk.Label(box,text=body,font=("Trebuchet MS",11),bg="#fff9d9",fg="#29204e",wraplength=600,justify="left").pack(anchor="w")
+        row=tk.Frame(win,bg=CREAM); row.pack(fill="x",pady=14,padx=18)
+        for label,fn in buttons:
+            tk.Button(row,text=label,command=fn,bg=PURPLE,fg="white",font=("Trebuchet MS",11,"bold"),padx=12,pady=7).pack(side="right",padx=5)
+        win.protocol("WM_DELETE_WINDOW", self.close_popup)
+
+    def close_popup(self):
+        if self.dialog is not None:
+            try: self.dialog.grab_release(); self.dialog.destroy()
+            except tk.TclError: pass
+        self.dialog=None
+
+    def show_map(self):
+        lines=[]
+        for i,m in enumerate(MISSIONS):
+            state="✅ Selesai" if i in self.completed else ("✨ Sedang diteroka" if i==self.current else "🔒 Belum dibuka")
+            lines.append(f"{i+1}. {m['place']} — {state}")
+        messagebox.showinfo("🗺️ Peta Moonstone", "\n".join(lines))
+
+    def finish(self):
+        self.root.unbind("<KeyPress>")
+        self.clear()
+        panel=tk.Frame(self.root,bg="#d9f5cf",padx=30,pady=28,highlightbackground=GOLD,highlightthickness=5)
+        panel.place(relx=.5,rely=.5,anchor="center",relwidth=.88,relheight=.84)
+        tk.Label(panel,text="🏰 🌙 🎉",font=("Segoe UI Emoji",42),bg="#d9f5cf").pack(pady=5)
+        tk.Label(panel,text="ISTANA RAHSIA TERBUKA!",font=("Trebuchet MS",24,"bold"),fg="#6540b4",bg="#d9f5cf").pack()
+        tk.Label(panel,text=f"Pengembara: {self.player}\n\nMARKAH: {self.score}/100 ({self.score}%)\nKunci dikumpulkan: {self.keys}/10\n\nSejarah ialah kunci untuk memahami masa lalu dan membina masa depan.",font=("Trebuchet MS",14),bg="#d9f5cf",justify="center").pack(pady=12)
+        ranks=[]
+        try:
+            if os.path.exists(RANK_FILE):
+                with open(RANK_FILE,"r",encoding="utf-8") as f: ranks=json.load(f)
+        except Exception: ranks=[]
+        ranks=[r for r in ranks if r.get("name")!=self.player]
+        ranks.append({"name":self.player,"score":self.score})
+        ranks.sort(key=lambda r:r["score"],reverse=True); ranks=ranks[:10]
+        try:
+            with open(RANK_FILE,"w",encoding="utf-8") as f: json.dump(ranks,f,ensure_ascii=False,indent=2)
+        except Exception: pass
+        pos=next((i+1 for i,r in enumerate(ranks) if r["name"]==self.player),"-")
+        ranking="\n".join(f"{i+1}. {r['name']} — {r['score']}%" for i,r in enumerate(ranks))
+        tk.Label(panel,text=f"🏆 KEDUDUKAN KAMU: #{pos}\n\n{ranking}",font=("Trebuchet MS",11,"bold"),bg="#fff9d9",fg="#29204e",justify="center",padx=15,pady=10).pack(pady=6)
+        tk.Button(panel,text="MAIN SEMULA",command=self.make_intro,bg=PURPLE,fg="white",font=("Trebuchet MS",12,"bold"),padx=18,pady=8).pack(pady=10)
+
+if __name__ == "__main__":
+    root=tk.Tk()
+    app=MoonstoneGame(root)
+    root.mainloop()
